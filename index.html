@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文本格式修改工具</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.13.2/dist/index.js"></script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .scrollbar::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        .scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+    <!-- 导航栏 -->
+    <nav class="bg-white dark:bg-gray-800 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <h1 class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">文本格式修改工具</h1>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="helpBtn" class="text-gray-500 hover:text-indigo-600 dark:text-gray-300 dark:hover:text-indigo-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </button>
+                    <button id="darkModeToggle" class="text-gray-500 hover:text-indigo-600 dark:text-gray-300 dark:hover:text-indigo-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主体内容 -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- 功能选项卡 -->
+        <div class="mb-6">
+            <div class="border-b border-gray-200 dark:border-gray-700">
+                <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+                    <button id="tab-basic" class="tab-btn border-indigo-500 text-indigo-600 dark:text-indigo-400 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                        基础转换
+                    </button>
+                    <button id="tab-replace" class="tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                        文本替换
+                    </button>
+                    <button id="tab-append" class="tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                        文本追加
+                    </button>
+                    <button id="tab-regex" class="tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                        正则表达式
+                    </button>
+                    <button id="tab-history" class="tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                        历史记录
+                    </button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- 功能区块 -->
+        <div id="function-panels" class="mb-6">
+            <!-- 基础转换功能面板 -->
+            <div id="panel-basic" class="panel-content fade-in">
+                <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
+                    <!-- 二级选项卡 -->
+                    <div class="mb-6">
+                        <div class="border-b border-gray-200 dark:border-gray-700">
+                            <nav class="flex -mb-px space-x-4" aria-label="Tabs">
+                                <button id="basic-tab-pinyin" class="basic-tab-btn border-indigo-500 text-indigo-600 dark:text-indigo-400 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                                    中文转拼音
+                                </button>
+                                <button id="basic-tab-case" class="basic-tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-600 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                                    大小写转换
+                                </button>
+                            </nav>
+                        </div>
+                    </div>
+
+                    <!-- 中文转拼音面板 -->
+                    <div id="basic-panel-pinyin" class="basic-panel">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">拼音格式</label>
+                                <select id="pinyin-tone" class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 py-2 px-3">
+                                    <option value="with">带音调</option>
+                                    <option value="without">不带音调</option>
+                                    <option value="first">首字母</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">大小写</label>
+                                <select id="pinyin-case" class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 py-2 px-3">
+                                    <option value="normal">保持原样</option>
+                                    <option value="lower">全小写</option>
+                                    <option value="upper">全大写</option>
+                                    <option value="capitalize">首字母大写</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">原文处理</label>
+                                <select id="pinyin-mode" class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 py-2 px-3">
+                                    <option value="replace">仅显示拼音</option>
+                                    <option value="after">拼音显示在后面</option>
+                                    <option value="before">拼音显示在前面</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button id="btn-pinyin" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200">
+                            转换为拼音
+                        </button>
+                    </div>
+
+                    <!-- 大小写转换面板 -->
+                    <div id="basic-panel-case" class="basic-panel hidden">
+                        <div class="flex flex-wrap gap-2 mb-6">
+                            <button id="btn-uppercase" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200">
+                                全部大写
+                            </button>
+                            <button id="btn-lowercase" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200">
+                                全部小写
+                            </button>
+                            <button id="btn-capitalize" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200">
+                                首字母大写
+                            </button>
+                            <button id="btn-title-case" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200">
+                                每词首字母大写
+                            </button>
+                            <button id="btn-swap-case" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200">
+                                大小写互换
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 文本替换功能面板 -->
+            <div id="panel-replace" class="panel-content hidden fade-in">
+                <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">位置替换</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">替换类型</label>
+                            <select id="replace-type" class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 py-2 px-3">
+                                <option value="start">替换前N位字符</option>
+                                <option value="end">替换后N位字符</option>
+                                <option value="position">替换第X位置后的N位字符</option>
+                                <option value="after">替换指定字符后面的所有字符</option>
+                                <option value="before">替换指定字符前面的所有字符</option>
+                                <option value="afterN">替换指定字符后面N位字符</option>
+                                <option value="beforeN">替换指定字符前面N位字符</option>
+                                <option value="search">查找并替换特定文本</option>
+                            </select>
+                        </div>
+                        
+                        <div id="replace-params-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div id="replace-param1" class="hidden">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">字符数(N)</label>
+                                <input type="number" min="1" value="1" class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 py-2 px-3">
+                            </div>
+                            <div id="replace-param2" class="hidden">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">起始位置(X)</label>
+                                <input type="number" min="0" value="0" class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 py-2 px-3">
+                            </div>
+                            <div id="replace-param3" class="hidden">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">指定字符</label>
+                                <input type="text" class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 py-2 px-3">
+                            </div>
+                            <div id="replace-param4" class="hidden">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">查找文本</label>
+                                <input type="text" class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 py-2 px-3">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">替换内容</label>
+                        <input id="replace-content" type="text" class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 py-2 px-3" placeholder="输入要替换成的内容">
+                    </div>
+
+                    <div class="flex items-center mb-6">
+                        <input id="replace-global" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                        <label for="replace-global" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">全局替换（适用于查找替换）</label>
+                    </div>
+
+                    <button id="btn-replace" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200">
+                        执行替换
+                    </button>
+                </div>
+            </div>
+
+            <!-- 文本追加功能面板 -->
+            <div id="panel-append" class="panel-content hidden fade-in">
+                <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
+                    <!-- 二级选项卡 -->
+                    <div class="mb-6">
+                        <div class="border-b border-gray-200 dark:border-gray-700">
+                            <nav class="flex -mb-px space-x-4" aria-label="Tabs">
+                                <button id="append-tab-text" class="append-tab-btn border-indigo-500 text-indigo-600 dark:text-indigo-400 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                                    固定文本追加
+                                </button>
+                                <button id="append-tab-sequence" class="append-tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-600 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                                    自动序号追加
+                                </button>
+                            </nav>
+                        </div>
+                    </div>
+
+                    <!-- 固定文本追加面板 -->
+                    <div id="append-panel-text" class="append-panel">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">追加位置</label>
+                                <select id="append-type" class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 py-2 px-3">
+                                    <option value="start">在文本开头</option>
+                                    <option value="end">在文本结尾</option>
+                                    <option value="position">在指定位置</option>
+                                    <option value="after">在指定字符后</option>
+                                    <option value="before">在指定字符前</option>
+                                </select>
+                            </div>
+                            <div id="append-params-container" class="hidden">
+                                <div id="append-param1">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">位置/字符</label>
+                                    <input type="text" class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 py-2 px-3">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">追加内容</label>
+                            <input id="append-content" type="text" class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 py-2 px-3" placeholder="输入要追加的内容">
+                        </div>
+
+                        <button id="btn-append" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200">
+                            追加文本
+                        </button>
+                    </div>
+
+                    <!-- 自动序号追加面板 -->
+                    <div id="append-panel-sequence" class="append-panel hidden">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">起始值</label>
+                                <input id="sequence-start" type="number" min="0" value="1" class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 py-2 px-3">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">步长</label>
+                                <input id="sequence-step" type="number" min="1" value="1" class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 py-2 px-3">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">格式</label>
+                                <select id="sequence-format" class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 py-2 px-3">
+                                    <option value="1">1, 2, 3...</option>
+                                    <option value="01">01, 02, 03...</option>
+                                    <option value="001">001, 002, 003...</option>
+                                    <option value="0001">0001, 0002, 0003...</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">追加位置</label>
+                                <select id="sequence-position" class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 py-2 px-3">
+                                    <option value="start">在每行开头</option>
+                                    <option value="end">在每行结尾</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">分隔符</label>
+                                <input id="sequence-separator" type="text" value=". " class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 py-2 px-3" placeholder="输入分隔符">
+                            </div>
+                        </div>
+
+                        <button id="btn-sequence" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200">
+                            添加序号
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 正则表达式功能面板 -->
+            <div id="panel-regex" class="panel-content hidden fade-in">
+                <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">正则表达式替换</h3>
+                    
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">正则表达式</label>
+                        <input id="regex-pattern" type="text" class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 py-2 px-3" placeholder="输入正则表达式，如 \b\w+\b">
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">替换文本</label>
+                        <input id="regex-replacement" type="text" class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 py-2 px-3" placeholder="输入替换文本，可使用 $1, $2 引用捕获组">
+                    </div>
+                    
+                    <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mb-6">
+                        <div class="flex items-center">
+                            <input id="regex-global" type="checkbox" checked class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                            <label for="regex-global" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">全局替换(g)</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input id="regex-insensitive" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                            <label for="regex-insensitive" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">忽略大小写(i)</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input id="regex-multiline" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                            <label for="regex-multiline" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">多行模式(m)</label>
+                        </div>
+                    </div>
+                    
+                    <button id="btn-regex" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200">
+                        执行正则替换
+                    </button>
+                    
+                    <hr class="my-6 border-gray-200 dark:border-gray-700">
+                    
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">常用正则表达式</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <button data-pattern="^\s+|\s+$" data-replacement="" class="regex-template bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium py-2 px-4 rounded-md transition-colors duration-200 text-left">
+                            <span class="block font-semibold">去除首尾空白</span>
+                            <span class="block text-xs text-gray-500 dark:text-gray-400">^\s+|\s+$</span>
+                        </button>
+                        
+                        <button data-pattern="\d+" data-replacement="" class="regex-template bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium py-2 px-4 rounded-md transition-colors duration-200 text-left">
+                            <span class="block font-semibold">匹配数字</span>
+                            <span class="block text-xs text-gray-500 dark:text-gray-400">\d+</span>
+                        </button>
+                        
+                        <button data-pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" data-replacement="" class="regex-template bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium py-2 px-4 rounded-md transition-colors duration-200 text-left">
+                            <span class="block font-semibold">匹配电子邮件</span>
+                            <span class="block text-xs text-gray-500 dark:text-gray-400">[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}</span>
+                        </button>
+                        
+                        <button data-pattern="(https?:\/\/[^\s]+)" data-replacement="" class="regex-template bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium py-2 px-4 rounded-md transition-colors duration-200 text-left">
+                            <span class="block font-semibold">匹配URL</span>
+                            <span class="block text-xs text-gray-500 dark:text-gray-400">(https?:\/\/[^\s]+)</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 历史记录功能面板 -->
+            <div id="panel-history" class="panel-content hidden fade-in">
+                <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">批量处理设置</h3>
+                    
+                    <div class="mb-6">
+                        <div class="flex items-center mb-4">
+                            <input id="batch-per-line" type="checkbox" checked class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                            <label for="batch-per-line" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">按行处理（每行作为独立文本处理）</label>
+                        </div>
+                        
+                        <div id="batch-separator-container" class="hidden mb-4">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">自定义分隔符</label>
+                            <input id="batch-separator" type="text" class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 py-2 px-3" placeholder="输入分隔文本的字符，例如逗号或分号">
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <input id="batch-empty-lines" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                            <label for="batch-empty-lines" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">跳过空行（不处理空白行）</label>
+                        </div>
+                    </div>
+                    
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">操作历史</h3>
+                    <div class="mb-6">
+                        <div id="history-container" class="max-h-40 overflow-y-auto scrollbar bg-gray-50 dark:bg-gray-700 rounded-md p-3">
+                            <p class="text-sm text-gray-500 dark:text-gray-400 italic">暂无操作历史</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <button id="btn-clear-history" class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200">
+                            清除历史记录
+                        </button>
+                        <button id="btn-reapply-last" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200" disabled>
+                            重新应用最后一次操作
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 文本编辑区域 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- 左侧输入区 -->
+            <div>
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-lg font-medium text-gray-700 dark:text-gray-300">输入文本</h2>
+                    <div>
+                        <button id="btn-clear-input" class="text-sm text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400">
+                            清空
+                        </button>
+                        <button id="btn-sample-input" class="ml-3 text-sm text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400">
+                            示例
+                        </button>
+                    </div>
+                </div>
+                <textarea id="input-text" class="w-full h-80 p-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:ring-indigo-500 focus:border-indigo-500 scrollbar" placeholder="在此输入文本..."></textarea>
+                <div class="mt-2 text-right text-xs text-gray-500 dark:text-gray-400" id="input-counter">字符数: 0 | 行数: 0</div>
+            </div>
+            
+            <!-- 右侧输出区 -->
+            <div>
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-lg font-medium text-gray-700 dark:text-gray-300">输出文本</h2>
+                    <div>
+                        <button id="btn-copy-output" class="text-sm text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400">
+                            复制
+                        </button>
+                        <button id="btn-clear-output" class="ml-3 text-sm text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400">
+                            清空
+                        </button>
+                    </div>
+                </div>
+                <textarea id="output-text" class="w-full h-80 p-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:ring-indigo-500 focus:border-indigo-500 scrollbar" placeholder="处理后的文本将显示在此处..." readonly></textarea>
+                <div class="mt-2 text-right text-xs text-gray-500 dark:text-gray-400" id="output-counter">字符数: 0 | 行数: 0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 帮助模态窗口 -->
+    <div id="helpModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black bg-opacity-50 transition-opacity">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto scrollbar">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">使用帮助</h3>
+                <button id="closeHelpBtn" class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
+                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="px-6 py-4">
+                <h4 class="font-medium text-gray-900 dark:text-white mb-2">基础转换</h4>
+                <p class="text-gray-600 dark:text-gray-300 mb-4">提供中文转拼音和英文大小写转换功能。可以设置拼音的音调、大小写和位置。</p>
+                
+                <h4 class="font-medium text-gray-900 dark:text-white mb-2">文本替换</h4>
+                <p class="text-gray-600 dark:text-gray-300 mb-4">可以替换文本中的特定部分，包括按位置替换（如前N位字符）或按内容替换（如特定字符后的文本）。</p>
+                
+                <h4 class="font-medium text-gray-900 dark:text-white mb-2">文本追加</h4>
+                <p class="text-gray-600 dark:text-gray-300 mb-4">可以在文本的特定位置添加内容，也可以添加自动递增的序号。</p>
+                
+                <h4 class="font-medium text-gray-900 dark:text-white mb-2">正则表达式</h4>
+                <p class="text-gray-600 dark:text-gray-300 mb-4">使用正则表达式进行高级文本操作，支持常见的正则标志如全局(g)、忽略大小写(i)等。</p>
+                
+                <h4 class="font-medium text-gray-900 dark:text-white mb-2">历史记录</h4>
+                <p class="text-gray-600 dark:text-gray-300 mb-4">配置如何处理多行文本及查看操作历史记录。可以按行处理或使用自定义分隔符。</p>
+                
+                <h4 class="font-medium text-gray-900 dark:text-white mb-2">键盘快捷键</h4>
+                <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 mb-4">
+                    <li>Ctrl+Enter: 执行当前选中的转换功能</li>
+                    <li>Ctrl+L: 清空输入文本</li>
+                    <li>Ctrl+Shift+C: 复制输出结果</li>
+                </ul>
+                
+                <p class="text-gray-600 dark:text-gray-300 italic">所有处理均在您的浏览器中进行，不会上传任何数据到服务器。刷新页面将清除所有文本。</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化UI
+            initUI();
+            
+            // 添加事件监听器
+            setupEventListeners();
+            
+            // 初始化暗黑模式
+            initDarkMode();
+            
+            // 初始化计数器
+            updateTextCounters();
+        });
+
+        function initUI() {
+            // 显示第一个标签页
+            document.getElementById('panel-basic').classList.remove('hidden');
+            
+            // 设置默认参数显示
+            updateReplaceParams();
+            updateAppendParams();
+            
+            // 预加载一些示例文本
+            document.getElementById('input-text').value = '';
+        }
+
+        function initDarkMode() {
+            // 检查用户偏好
+            if (localStorage.getItem('darkMode') === 'true' || 
+                (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+
+        function setupEventListeners() {
+            // 主标签切换
+            document.querySelectorAll('.tab-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    // 移除所有标签的激活状态
+                    document.querySelectorAll('.tab-btn').forEach(btn => {
+                        btn.classList.remove('border-indigo-500', 'text-indigo-600', 'dark:text-indigo-400');
+                        btn.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300', 'dark:text-gray-400', 'dark:hover:text-gray-300', 'dark:hover:border-gray-600');
+                    });
+                    
+                    // 激活当前标签
+                    this.classList.add('border-indigo-500', 'text-indigo-600', 'dark:text-indigo-400');
+                    this.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300', 'dark:text-gray-400', 'dark:hover:text-gray-300', 'dark:hover:border-gray-600');
+                    
+                    // 隐藏所有面板
+                    document.querySelectorAll('.panel-content').forEach(panel => {
+                        panel.classList.add('hidden');
+                    });
+                    
+                    // 显示对应面板
+                    const panelId = 'panel-' + this.id.split('-')[1];
+                    const panel = document.getElementById(panelId);
+                    panel.classList.remove('hidden');
+                });
+            });
+
+            // 基础转换二级标签切换
+            document.querySelectorAll('.basic-tab-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    // 移除所有标签的激活状态
+                    document.querySelectorAll('.basic-tab-btn').forEach(btn => {
+                        btn.classList.remove('border-indigo-500', 'text-indigo-600', 'dark:text-indigo-400');
+                        btn.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300', 'dark:text-gray-400', 'dark:hover:text-gray-300', 'dark:hover:border-gray-600');
+                    });
+                    
+                    // 激活当前标签
+                    this.classList.add('border-indigo-500', 'text-indigo-600', 'dark:text-indigo-400');
+                    this.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300', 'dark:text-gray-400', 'dark:hover:text-gray-300', 'dark:hover:border-gray-600');
+                    
+                    // 隐藏所有面板
+                    document.querySelectorAll('.basic-panel').forEach(panel => {
+                        panel.classList.add('hidden');
+                    });
+                    
+                    // 显示对应面板
+                    const panelId = 'basic-panel-' + this.id.split('-')[2];
+                    const panel = document.getElementById(panelId);
+                    panel.classList.remove('hidden');
+                });
+            });
+
+            // 文本追加二级标签切换
+            document.querySelectorAll('.append-tab-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    // 移除所有标签的激活状态
+                    document.querySelectorAll('.append-tab-btn').forEach(btn => {
+                        btn.classList.remove('border-indigo-500', 'text-indigo-600', 'dark:text-indigo-400');
+                        btn.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300', 'dark:text-gray-400', 'dark:hover:text-gray-300', 'dark:hover:border-gray-600');
+                    });
+                    
+                    // 激活当前标签
+                    this.classList.add('border-indigo-500', 'text-indigo-600', 'dark:text-indigo-400');
+                    this.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300', 'dark:text-gray-400', 'dark:hover:text-gray-300', 'dark:hover:border-gray-600');
+                    
+                    // 隐藏所有面板
+                    document.querySelectorAll('.append-panel').forEach(panel => {
+                        panel.classList.add('hidden');
+                    });
+                    
+                    // 显示对应面板
+                    const panelId = 'append-panel-' + this.id.split('-')[2];
+                    const panel = document.getElementById(panelId);
+                    panel.classList.remove('hidden');
+                });
+            });
+            
+            // 暗黑模式切换
+            document.getElementById('darkModeToggle').addEventListener('click', function() {
+                document.documentElement.classList.toggle('dark');
+                localStorage.setItem('darkMode', document.documentElement.classList.contains('dark'));
+            });
+            
+            // 帮助模态窗口
+            document.getElementById('helpBtn').addEventListener('click', function() {
+                document.getElementById('helpModal').classList.remove('hidden');
+            });
+            
+            document.getElementById('closeHelpBtn').addEventListener('click', function() {
+                document.getElementById('helpModal').classList.add('hidden');
+            });
+            
+            // 点击模态窗口外部关闭
+            document.getElementById('helpModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.add('hidden');
+                }
+            });
+            
+            // 替换类型改变时更新参数
+            document.getElementById('replace-type').addEventListener('change', updateReplaceParams);
+            
+            // 追加类型改变时更新参数
+            document.getElementById('append-type').addEventListener('change', updateAppendParams);
+            
+            // 批量处理按行切换
+            document.getElementById('batch-per-line').addEventListener('change', function() {
+                document.getElementById('batch-separator-container').classList.toggle('hidden', this.checked);
+            });
+            
+            // 输入文本变化时更新计数器
+            document.getElementById('input-text').addEventListener('input', updateTextCounters);
+            
+            // 按钮事件
+            document.getElementById('btn-pinyin').addEventListener('click', convertToPinyin);
+            document.getElementById('btn-uppercase').addEventListener('click', () => convertCase('upper'));
+            document.getElementById('btn-lowercase').addEventListener('click', () => convertCase('lower'));
+            document.getElementById('btn-capitalize').addEventListener('click', () => convertCase('capitalize'));
+            document.getElementById('btn-title-case').addEventListener('click', () => convertCase('title'));
+            document.getElementById('btn-swap-case').addEventListener('click', () => convertCase('swap'));
+            document.getElementById('btn-replace').addEventListener('click', replaceText);
+            document.getElementById('btn-append').addEventListener('click', appendText);
+            document.getElementById('btn-sequence').addEventListener('click', appendSequence);
+            document.getElementById('btn-regex').addEventListener('click', regexReplace);
+            document.getElementById('btn-clear-history').addEventListener('click', clearHistory);
+            document.getElementById('btn-reapply-last').addEventListener('click', reapplyLastOperation);
+            document.getElementById('btn-clear-input').addEventListener('click', () => document.getElementById('input-text').value = '');
+            document.getElementById('btn-clear-output').addEventListener('click', () => document.getElementById('output-text').value = '');
+            document.getElementById('btn-copy-output').addEventListener('click', copyOutputText);
+            document.getElementById('btn-sample-input').addEventListener('click', loadSampleText);
+            
+            // 正则表达式模板选择
+            document.querySelectorAll('.regex-template').forEach(button => {
+                button.addEventListener('click', function() {
+                    document.getElementById('regex-pattern').value = this.getAttribute('data-pattern');
+                    if (this.getAttribute('data-replacement')) {
+                        document.getElementById('regex-replacement').value = this.getAttribute('data-replacement');
+                    }
+                });
+            });
+            
+            // 键盘快捷键
+            document.addEventListener('keydown', function(e) {
+                // Ctrl+Enter: 执行当前选中的转换功能
+                if (e.ctrlKey && e.key === 'Enter') {
+                    e.preventDefault();
+                    const activePanel = document.querySelector('.panel-content:not(.hidden)');
+                    if (activePanel) {
+                        const btnId = activePanel.querySelector('button[id^="btn-"]:not([id*="clear"]):not([id*="copy"])').id;
+                        document.getElementById(btnId).click();
+                    }
+                }
+                
+                // Ctrl+L: 清空输入文本
+                if (e.ctrlKey && e.key === 'l') {
+                    e.preventDefault();
+                    document.getElementById('btn-clear-input').click();
+                }
+                
+                // Ctrl+Shift+C: 复制输出结果
+                if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+                    e.preventDefault();
+                    document.getElementById('btn-copy-output').click();
+                }
+            });
+        }
+
+        function updateReplaceParams() {
+            const type = document.getElementById('replace-type').value;
+            
+            // 隐藏所有参数
+            document.getElementById('replace-param1').classList.add('hidden');
+            document.getElementById('replace-param2').classList.add('hidden');
+            document.getElementById('replace-param3').classList.add('hidden');
+            document.getElementById('replace-param4').classList.add('hidden');
+            
+            // 根据类型显示相应的参数
+            switch(type) {
+                case 'start':
+                case 'end':
+                    document.getElementById('replace-param1').classList.remove('hidden');
+                    break;
+                case 'position':
+                    document.getElementById('replace-param1').classList.remove('hidden');
+                    document.getElementById('replace-param2').classList.remove('hidden');
+                    break;
+                case 'after':
+                case 'before':
+                    document.getElementById('replace-param3').classList.remove('hidden');
+                    break;
+                case 'afterN':
+                case 'beforeN':
+                    document.getElementById('replace-param1').classList.remove('hidden');
+                    document.getElementById('replace-param3').classList.remove('hidden');
+                    break;
+                case 'search':
+                    document.getElementById('replace-param4').classList.remove('hidden');
+                    break;
+            }
+        }
+
+        function updateAppendParams() {
+            const type = document.getElementById('append-type').value;
+            
+            // 隐藏所有参数
+            document.getElementById('append-params-container').classList.add('hidden');
+            
+            // 根据类型显示相应的参数
+            switch(type) {
+                case 'position':
+                case 'after':
+                case 'before':
+                    document.getElementById('append-params-container').classList.remove('hidden');
+                    break;
+            }
+        }
+
+        function updateTextCounters() {
+            const inputText = document.getElementById('input-text').value;
+            const outputText = document.getElementById('output-text').value;
+            
+            document.getElementById('input-counter').textContent = `字符数: ${inputText.length} | 行数: ${inputText ? inputText.split('\n').length : 0}`;
+            document.getElementById('output-counter').textContent = `字符数: ${outputText.length} | 行数: ${outputText ? outputText.split('\n').length : 0}`;
+        }
+
+        function getBatchSettings() {
+            return {
+                perLine: document.getElementById('batch-per-line').checked,
+                separator: document.getElementById('batch-separator').value,
+                skipEmpty: document.getElementById('batch-empty-lines').checked
+            };
+        }
+
+        function processText(text, processor, settings) {
+            if (!text) return '';
+            
+            // 是否按行处理
+            if (settings.perLine) {
+                const lines = text.split('\n');
+                return lines
+                    .filter(line => !settings.skipEmpty || line.trim())
+                    .map(processor)
+                    .join('\n');
+            } 
+            // 否则按自定义分隔符处理
+            else if (settings.separator) {
+                const parts = text.split(settings.separator);
+                return parts
+                    .filter(part => !settings.skipEmpty || part.trim())
+                    .map(processor)
+                    .join(settings.separator);
+            } 
+            // 整体处理
+            else {
+                return processor(text);
+            }
+        }
+
+        function addToHistory(operation, details) {
+            const historyContainer = document.getElementById('history-container');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            // 创建历史条目
+            const historyItem = document.createElement('div');
+            historyItem.className = 'mb-2 pb-2 border-b border-gray-100 dark:border-gray-600 last:border-0';
+            historyItem.innerHTML = `
+                <div class="flex justify-between text-sm">
+                    <span class="font-medium text-gray-700 dark:text-gray-300">${operation}</span>
+                    <span class="text-gray-500 dark:text-gray-400">${timestamp}</span>
+                </div>
+                <p class="text-xs text-gray-500 dark:text-gray-400">${details}</p>
+            `;
+            
+            // 清除"暂无操作历史"文本
+            if (historyContainer.innerText.includes('暂无操作历史')) {
+                historyContainer.innerHTML = '';
+            }
+            
+            // 添加到历史记录
+            historyContainer.prepend(historyItem);
+            
+            // 限制历史记录条目数量
+            if (historyContainer.children.length > 10) {
+                historyContainer.removeChild(historyContainer.lastChild);
+            }
+            
+            // 启用"重新应用最后一次操作"按钮
+            document.getElementById('btn-reapply-last').disabled = false;
+            
+            // 存储最后一次操作
+            window._lastOperation = { operation, details, func: window._currentOperation };
+        }
+
+        function clearHistory() {
+            const historyContainer = document.getElementById('history-container');
+            historyContainer.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-400 italic">暂无操作历史</p>';
+            document.getElementById('btn-reapply-last').disabled = true;
+            window._lastOperation = null;
+        }
+
+        function reapplyLastOperation() {
+            if (window._lastOperation && typeof window._lastOperation.func === 'function') {
+                window._lastOperation.func();
+            }
+        }
+
+        function copyOutputText() {
+            const outputText = document.getElementById('output-text');
+            outputText.select();
+            document.execCommand('copy');
+            
+            // 显示复制成功提示
+            const copyBtn = document.getElementById('btn-copy-output');
+            const originalText = copyBtn.textContent;
+            copyBtn.textContent = '已复制!';
+            setTimeout(() => {
+                copyBtn.textContent = originalText;
+            }, 2000);
+        }
+
+        function loadSampleText() {
+            const samples = [
+                "这是一段中文文本，用于测试拼音转换功能。\n英文部分：Hello World! This is a test.\n数字部分：123456\n混合文本：中文English混合123",
+                "第一行：中国北京\n第二行：上海市浦东新区\n第三行：广州天河\n第四行：深圳福田区",
+                "需要替换的文本：前缀_有用的内容_后缀\n还有一行：开头ABCDEFG结尾\n再一行：12345上山打老虎54321",
+                "正则表达式测试用例1：user@example.com\n正则表达式测试用例2：https://www.example.com\n电话号码：13812345678"
+            ];
+            
+            const randomSample = samples[Math.floor(Math.random() * samples.length)];
+            document.getElementById('input-text').value = randomSample;
+            updateTextCounters();
+        }
+
+        // 中文转拼音函数
+        function convertToPinyin() {
+            const inputText = document.getElementById('input-text').value;
+            const toneType = document.getElementById('pinyin-tone').value;
+            const caseType = document.getElementById('pinyin-case').value;
+            const mode = document.getElementById('pinyin-mode').value;
+            
+            // 存储当前操作
+            window._currentOperation = convertToPinyin;
+            
+            // 处理函数
+            const processor = (text) => {
+                // 根据模式确定如何转换
+                let result = '';
+                
+                try {
+                    // 修改这部分
+                    let pinyinOptions = {};
+                    if (toneType === 'with') {
+                        pinyinOptions = { toneType: 'symbol' };
+                    } else if (toneType === 'without') {
+                        pinyinOptions = { toneType: 'none' };
+                    } else if (toneType === 'first') {
+                        pinyinOptions = { pattern: 'first', toneType: 'none' };
+                    }
+                    
+                    let pinyin = window.pinyinPro.pinyin(text, pinyinOptions);
+                    
+                    // 处理大小写
+                    if (caseType === 'lower') {
+                        pinyin = pinyin.toLowerCase();
+                    } else if (caseType === 'upper') {
+                        pinyin = pinyin.toUpperCase();
+                    } else if (caseType === 'capitalize') {
+                        pinyin = pinyin.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+                    }
+                    
+                    // 根据模式组合结果
+                    if (mode === 'replace') {
+                        result = pinyin;
+                    } else if (mode === 'after') {
+                        result = text + ' (' + pinyin + ')';
+                    } else if (mode === 'before') {
+                        result = '(' + pinyin + ') ' + text;
+                    }
+                } catch (e) {
+                    result = '转换出错: ' + e.message;
+                }
+                
+                return result;
+            };
+            
+            // 执行转换并更新输出
+            const settings = getBatchSettings();
+            const output = processText(inputText, processor, settings);
+            document.getElementById('output-text').value = output;
+            updateTextCounters();
+            
+            // 添加到历史记录
+            addToHistory('中文转拼音', `模式: ${mode}, 音调: ${toneType}, 大小写: ${caseType}`);
+        }
+
+
+        // 大小写转换函数
+        function convertCase(type) {
+            const inputText = document.getElementById('input-text').value;
+            
+            // 存储当前操作
+            window._currentOperation = () => convertCase(type);
+            
+            // 处理函数
+            const processor = (text) => {
+                switch(type) {
+                    case 'upper':
+                        return text.toUpperCase();
+                    case 'lower':
+                        return text.toLowerCase();
+                    case 'capitalize':
+                        return text.charAt(0).toUpperCase() + text.slice(1);
+                    case 'title':
+                        return text.replace(/\b\w/g, c => c.toUpperCase());
+                    case 'swap':
+                        return text.split('').map(c => {
+                            if (c === c.toUpperCase()) return c.toLowerCase();
+                            return c.toUpperCase();
+                        }).join('');
+                    default:
+                        return text;
+                }
+            };
+            
+            // 执行转换并更新输出
+            const settings = getBatchSettings();
+            const output = processText(inputText, processor, settings);
+            document.getElementById('output-text').value = output;
+            updateTextCounters();
+            
+            // 添加到历史记录
+            const operations = {
+                'upper': '全部大写',
+                'lower': '全部小写',
+                'capitalize': '首字母大写',
+                'title': '每词首字母大写',
+                'swap': '大小写互换'
+            };
+            addToHistory('大小写转换', operations[type]);
+        }
+
+        // 文本替换函数
+        function replaceText() {
+            const inputText = document.getElementById('input-text').value;
+            const replaceType = document.getElementById('replace-type').value;
+            const replaceContent = document.getElementById('replace-content').value;
+            const isGlobal = document.getElementById('replace-global').checked;
+            
+            // 存储当前操作
+            window._currentOperation = replaceText;
+            
+            // 获取参数
+            let params = {};
+            switch(replaceType) {
+                case 'start':
+                case 'end':
+                    params.n = parseInt(document.getElementById('replace-param1').querySelector('input').value);
+                    break;
+                case 'position':
+                    params.n = parseInt(document.getElementById('replace-param1').querySelector('input').value);
+                    params.pos = parseInt(document.getElementById('replace-param2').querySelector('input').value);
+                    break;
+                case 'after':
+                case 'before':
+                    params.char = document.getElementById('replace-param3').querySelector('input').value;
+                    break;
+                case 'afterN':
+                case 'beforeN':
+                    params.n = parseInt(document.getElementById('replace-param1').querySelector('input').value);
+                    params.char = document.getElementById('replace-param3').querySelector('input').value;
+                    break;
+                case 'search':
+                    params.search = document.getElementById('replace-param4').querySelector('input').value;
+                    break;
+            }
+            
+            // 处理函数
+            const processor = (text) => {
+                let result = text;
+                
+                try {
+                    switch(replaceType) {
+                        case 'start':
+                            if (text.length >= params.n) {
+                                result = replaceContent + text.substring(params.n);
+                            }
+                            break;
+                        case 'end':
+                            if (text.length >= params.n) {
+                                result = text.substring(0, text.length - params.n) + replaceContent;
+                            }
+                            break;
+                        case 'position':
+                            if (text.length > params.pos) {
+                                const endPos = Math.min(params.pos + params.n, text.length);
+                                result = text.substring(0, params.pos) + replaceContent + text.substring(endPos);
+                            }
+                            break;
+                        case 'after':
+                            if (params.char && text.includes(params.char)) {
+                                const pos = text.indexOf(params.char) + params.char.length;
+                                result = text.substring(0, pos) + replaceContent;
+                            }
+                            break;
+                        case 'before':
+                            if (params.char && text.includes(params.char)) {
+                                const pos = text.indexOf(params.char);
+                                result = replaceContent + text.substring(pos);
+                            }
+                            break;
+                        case 'afterN':
+                            if (params.char && text.includes(params.char)) {
+                                const pos = text.indexOf(params.char) + params.char.length;
+                                const endPos = Math.min(pos + params.n, text.length);
+                                result = text.substring(0, pos) + replaceContent + text.substring(endPos);
+                            }
+                            break;
+                        case 'beforeN':
+                            if (params.char && text.includes(params.char)) {
+                                const pos = text.indexOf(params.char);
+                                const startPos = Math.max(pos - params.n, 0);
+                                result = text.substring(0, startPos) + replaceContent + text.substring(pos);
+                            }
+                            break;
+                        case 'search':
+                            if (params.search) {
+                                if (isGlobal) {
+                                    result = text.split(params.search).join(replaceContent);
+                                } else {
+                                    result = text.replace(params.search, replaceContent);
+                                }
+                            }
+                            break;
+                    }
+                } catch (e) {
+                    result = '替换出错: ' + e.message;
+                }
+                
+                return result;
+            };
+            
+            // 执行转换并更新输出
+            const settings = getBatchSettings();
+            const output = processText(inputText, processor, settings);
+            document.getElementById('output-text').value = output;
+            updateTextCounters();
+            
+            // 添加到历史记录
+            let details = '';
+            switch(replaceType) {
+                case 'start':
+                    details = `替换前${params.n}个字符为"${replaceContent}"`;
+                    break;
+                case 'end':
+                    details = `替换后${params.n}个字符为"${replaceContent}"`;
+                    break;
+                case 'position':
+                    details = `替换位置${params.pos}后${params.n}个字符为"${replaceContent}"`;
+                    break;
+                case 'after':
+                    details = `替换"${params.char}"后所有字符为"${replaceContent}"`;
+                    break;
+                case 'before':
+                    details = `替换"${params.char}"前所有字符为"${replaceContent}"`;
+                    break;
+                case 'afterN':
+                    details = `替换"${params.char}"后${params.n}个字符为"${replaceContent}"`;
+                    break;
+                case 'beforeN':
+                    details = `替换"${params.char}"前${params.n}个字符为"${replaceContent}"`;
+                    break;
+                case 'search':
+                    details = `替换"${params.search}"为"${replaceContent}" ${isGlobal ? '(全局)' : ''}`;
+                    break;
+            }
+            addToHistory('文本替换', details);
+        }
+
+        // 文本追加函数
+        function appendText() {
+            const inputText = document.getElementById('input-text').value;
+            const appendType = document.getElementById('append-type').value;
+            const appendContent = document.getElementById('append-content').value;
+            
+            // 存储当前操作
+            window._currentOperation = appendText;
+            
+            // 获取参数
+            let param = '';
+            if (['position', 'after', 'before'].includes(appendType)) {
+                param = document.getElementById('append-param1').querySelector('input').value;
+            }
+            
+            // 处理函数
+            const processor = (text) => {
+                let result = text;
+                
+                try {
+                    switch(appendType) {
+                        case 'start':
+                            result = appendContent + text;
+                            break;
+                        case 'end':
+                            result = text + appendContent;
+                            break;
+                        case 'position':
+                            const pos = parseInt(param);
+                            if (pos <= text.length) {
+                                result = text.substring(0, pos) + appendContent + text.substring(pos);
+                            } else {
+                                result = text + appendContent;
+                            }
+                            break;
+                        case 'after':
+                            if (param && text.includes(param)) {
+                                const pos = text.indexOf(param) + param.length;
+                                result = text.substring(0, pos) + appendContent + text.substring(pos);
+                            }
+                            break;
+                        case 'before':
+                            if (param && text.includes(param)) {
+                                const pos = text.indexOf(param);
+                                result = text.substring(0, pos) + appendContent + text.substring(pos);
+                            }
+                            break;
+                    }
+                } catch (e) {
+                    result = '追加出错: ' + e.message;
+                }
+                
+                return result;
+            };
+            
+            // 执行转换并更新输出
+            const settings = getBatchSettings();
+            const output = processText(inputText, processor, settings);
+            document.getElementById('output-text').value = output;
+            updateTextCounters();
+            
+            // 添加到历史记录
+            let details = '';
+            switch(appendType) {
+                case 'start':
+                    details = `在开头添加"${appendContent}"`;
+                    break;
+                case 'end':
+                    details = `在结尾添加"${appendContent}"`;
+                    break;
+                case 'position':
+                    details = `在位置${param}添加"${appendContent}"`;
+                    break;
+                case 'after':
+                    details = `在"${param}"后添加"${appendContent}"`;
+                    break;
+                case 'before':
+                    details = `在"${param}"前添加"${appendContent}"`;
+                    break;
+            }
+            addToHistory('文本追加', details);
+        }
+
+        // 序号追加函数
+        function appendSequence() {
+            const inputText = document.getElementById('input-text').value;
+            const startValue = parseInt(document.getElementById('sequence-start').value);
+            const step = parseInt(document.getElementById('sequence-step').value);
+            const format = document.getElementById('sequence-format').value;
+            const position = document.getElementById('sequence-position').value;
+            const separator = document.getElementById('sequence-separator').value;
+            
+            // 存储当前操作
+            window._currentOperation = appendSequence;
+            
+            // 处理函数
+            let counter = startValue;
+            const processor = (text) => {
+                let num = counter;
+                counter += step;
+                
+                // 格式化序号
+                let formattedNum = num.toString();
+                if (format === '01') {
+                    formattedNum = num < 10 ? '0' + num : num.toString();
+                } else if (format === '001') {
+                    if (num < 10) formattedNum = '00' + num;
+                    else if (num < 100) formattedNum = '0' + num;
+                } else if (format === '0001') {
+                    if (num < 10) formattedNum = '000' + num;
+                    else if (num < 100) formattedNum = '00' + num;
+                    else if (num < 1000) formattedNum = '0' + num;
+                }
+                
+                // 添加序号
+                if (position === 'start') {
+                    return formattedNum + separator + text;
+                } else {
+                    return text + separator + formattedNum;
+                }
+            };
+            
+            // 执行转换并更新输出
+            const settings = getBatchSettings();
+            
+            // 特别处理：自动序号必须按行或分隔符处理
+            if (!settings.perLine && !settings.separator) {
+                settings.perLine = true;
+            }
+            
+            const output = processText(inputText, processor, settings);
+            document.getElementById('output-text').value = output;
+            updateTextCounters();
+            
+            // 添加到历史记录
+            const details = `添加序号(起始值:${startValue},步长:${step},格式:${format},位置:${position === 'start' ? '开头' : '结尾'},分隔符:"${separator}")`;
+            addToHistory('序号追加', details);
+        }
+
+        // 正则表达式替换函数
+        function regexReplace() {
+            const inputText = document.getElementById('input-text').value;
+            const pattern = document.getElementById('regex-pattern').value;
+            const replacement = document.getElementById('regex-replacement').value;
+            const isGlobal = document.getElementById('regex-global').checked;
+            const isCaseInsensitive = document.getElementById('regex-insensitive').checked;
+            const isMultiline = document.getElementById('regex-multiline').checked;
+            
+            // 存储当前操作
+            window._currentOperation = regexReplace;
+            
+            if (!pattern) {
+                alert('请输入正则表达式');
+                return;
+            }
+            
+            // 构建正则表达式标志
+            let flags = '';
+            if (isGlobal) flags += 'g';
+            if (isCaseInsensitive) flags += 'i';
+            if (isMultiline) flags += 'm';
+            
+            // 处理函数
+            const processor = (text) => {
+                try {
+                    const regex = new RegExp(pattern, flags);
+                    return text.replace(regex, replacement);
+                } catch (e) {
+                    return '正则表达式错误: ' + e.message;
+                }
+            };
+            
+            // 执行转换并更新输出
+            const settings = getBatchSettings();
+            const output = processText(inputText, processor, settings);
+            document.getElementById('output-text').value = output;
+            updateTextCounters();
+            
+            // 添加到历史记录
+            const details = `正则: /${pattern}/${flags}, 替换为: "${replacement}"`;
+            addToHistory('正则表达式替换', details);
+        }
+    </script>
+</body>
+</html>
